@@ -1,0 +1,28 @@
+Kill mac os process on port
+sudo lsof -i :<PORT>
+kill -9 <PID>
+
+Links Librerías
+https://react-dropzone.js.org/
+https://www.apollographql.com/
+https://graphql.org/
+https://turbo.build/
+https://plotly.com/graphing-libraries/
+https://www.shipengine.com/
+https://next-auth.js.org/
+https://usehooks-ts.com/
+https://testing-library.com/
+https://jestjs.io/
+https://mui.com/
+https://react-hook-form.com/
+
+Tutoriales
+https://www.jakobmaier.at/posts/next-auth-postgres-adapter/
+https://rahmanfadhil.com/graphql-dataloader/
+https://levelup.gitconnected.com/reareact-hook-form-with-mui-examples-a3080b71ec45
+https://dev.to/franciscomendes10866/graphql-authentication-and-authorization-in-nodejs-hm4
+
+Herramientas
+https://textedit.tools/camelcase
+https://jwt.io/
+https://readme.so/editor

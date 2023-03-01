@@ -1,0 +1,132 @@
+EC2 configuration steps server
+
+1. connect to the server
+2. sudo yum update
+3. cat /etc/os-release
+3. sudo vim /etc/yum.repos.d/nginx.repo
+4. insert this text on vim editor:
+
+[nginx]
+name=nginx repo
+baseurl=https://nginx.org/packages/centos/7/$basearch/
+gpgcheck=0
+enabled=1
+
+5. sudo yum update
+6. sudo yum install nginx
+7. curl localhost:80
+8. sudo service nginx start
+9. curl localhost:80
+10. cd /etc/nginx
+11. sudo vim nginx.conf
+
+user nginx;
+worker_processes auto;
+error_log /var/log/nginx/error.log;
+pid /run/nginx.pid;
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                    '$status $body_bytes_sent "$http_referer" '
+                    '"$http_user_agent" "$http_x_forwarded_for"';
+
+    access_log  /var/log/nginx/access.log  main;
+
+    sendfile            on;
+    tcp_nopush          on;
+    tcp_nodelay         on;
+    keepalive_timeout   65;
+    types_hash_max_size 4096;
+
+    include             /etc/nginx/mime.types;
+    default_type        application/octet-stream;
+
+    server {
+        listen 80;
+        listen [::]:80;
+        server_name demo-internal-operations-portal.radiclescience.com;
+        root /home/ec2-user/app-frontend;
+
+        location /_next/static/ {
+            alias /home/ec2-user/app-frontend/apps/internal-research-study-portal/.next/static/;
+            expires 365d;
+            access_log off;
+        }
+        
+        location / {
+            proxy_pass http://127.0.0.1:3000;
+            proxy_http_version 1.1;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_buffers 8 16k;
+            proxy_buffer_size 32k;
+        }
+    }
+    
+    # Settings for a TLS enabled server.
+    server {
+        listen 443 ssl http2;
+        listen [::]:443 ssl http2;
+        server_name demo-internal-operations-portal.radiclescience.com;
+        root /home/ec2-user/app-frontend;
+
+        ssl_certificate      /etc/nginx/certs/ssl.example.com;
+        ssl_certificate_key  /etc/nginx/certs/ssl.example.com;
+        ssl_session_cache shared:SSL:1m;
+        ssl_session_timeout  10m;
+        #ssl_ciphers PROFILE=SYSTEM;
+        ssl_prefer_server_ciphers on;
+
+        location /_next/static/ {
+            alias /home/ec2-user/app-frontend/apps/internal-research-study-portal/.next/static/;
+            expires 365d;
+            access_log off;
+        }
+
+        location / {
+                proxy_pass http://127.0.0.1:3000;
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+                proxy_buffers 8 16k;
+                proxy_buffer_size 32k;
+        }
+    }
+}
+
+15. cd /home/ec2-user
+16. curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.37.2/install.sh | bash
+17. . ~/.nvm/nvm.sh
+18. nvm install 16
+19. npm i -g pm2
+20. npm install -g yarn
+21. cd /home/ec2-user/app-frontend
+22. rm -rf node_modules
+23. npm i
+24. npm run build
+25. pm2 start npm --name "rwa-internal-portal" -- run start:portal --
+26. pm2 restart all
+27. sudo systemctl restart nginx
+
+
+In case of errors running scripts
+
+- sudo vim /etc/environment
+
+LANG=en_US.utf-8
+LC_ALL=en_US.utf-8
+
+- add this before each script
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+In case of errors related to nextjs static files
+  sudo usermod -a -G ec2-user nginx
+  chmod 710 /home/ec2-user
